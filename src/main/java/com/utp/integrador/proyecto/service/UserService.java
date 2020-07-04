@@ -1,12 +1,11 @@
 package com.utp.integrador.proyecto.service;
 
-
 import com.utp.integrador.proyecto.domain.User;
 import com.utp.integrador.proyecto.repository.UserRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 
@@ -35,7 +34,16 @@ public class UserService {
             .flatMap(key -> Mono.fromSupplier(()-> this.repo.findById(key)
             .orElseThrow(RuntimeException::new))); 
   }
-    
-  
+
+  public Mono<User> totalUpdate(Integer id, User user) {
+    return this.getUser(id)
+            .doOnNext(entity -> BeanUtils.copyProperties(user, entity, "id"))
+            .doOnNext(this.repo::save);
+  }
+
+  public Mono<User> delete(Integer id) {
+    return this.getUser(id)
+            .doOnSuccess(repo::delete);
+  }
   
 }
